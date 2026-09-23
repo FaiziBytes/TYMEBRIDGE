@@ -1,0 +1,338 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ===== ThymeBridge brand design tokens (Tailwind v4 @theme) =====
+   Derived from the logo (client/src/assets/THYMEBRIDGE_LOGO.jpeg): the flat
+   background samples as #718B64, a muted sage. Every foreground/background
+   pair below was contrast-checked and the ratio is noted, so a later tweak
+   has something to check itself against.
+
+   The rule that matters: the logo sage (`brand`) is too light to carry white
+   text — 3.76:1. It is for the logo tile, accents and tints. Filled buttons
+   use `brand-600`; sage as text on a light surface uses `brand-800`. */
+@theme {
+  /* --- brand: logo sage --- */
+  --color-brand: #718b64; /* the logo green — tiles, accents, tints */
+  --color-brand-600: #547046; /* button fill — white on it = 5.55:1 */
+  --color-brand-700: #44603a; /* fill hover — 7.05:1 */
+  --color-brand-800: #4c6840; /* sage AS TEXT — 6.25:1 on white */
+  --color-brand-900: #2e4028; /* deepest sage */
+  --color-brand-300: #a9c098; /* accent ON dark — 7.57:1 on navy */
+  --color-brand-200: #c9dbbb; /* light tint */
+
+  /* --- dark surfaces --- */
+  --color-navy: #1a2b20; /* primary dark surface — white on it = 14.89:1 */
+  --color-forest-800: #24382c; /* raised dark surface / hover */
+  --color-forest-950: #101c14; /* deepest */
+  --color-payne: #3f5a4e; /* muted forest */
+
+  /* --- text --- */
+  --color-ink: #16211a; /* headings — 15.64:1 on page */
+  --color-body: #4a5350; /* body copy — 7.49:1 on page */
+  --color-faint: #66716c; /* muted — 4.78:1 on page */
+  --color-slatey: #a7b4ae; /* muted ON dark — 6.94:1 on navy */
+
+  /* --- surfaces & lines --- */
+  --color-paper: #ffffff;
+  --color-page: #f7f9f4;
+  --color-line: #edf1e8;
+  --color-line2: #dfe6d8;
+  --color-border: #dfe6d8;
+  --color-fill: #e8efe1; /* secondary button bg */
+  --color-tint: #f4f8f0; /* faintest sage wash */
+  --color-mint: #e6f0e8;
+
+  /* --- semantic --- */
+  --color-success: #1f8a4a;
+  --color-star: #e8a600; /* review stars: always pair with the numeric rating,
+                            gold on white is below 3:1 on its own */
+  --color-switch: #ffffff;
+
+  /* radius */
+  --radius-pill: 200px;
+
+  /* shadows */
+  --shadow-card: 0 12px 32px rgba(26, 43, 32, 0.1);
+  --shadow-soft: 0 16px 18px rgba(26, 43, 32, 0.08);
+  --shadow-volt: 0 14px 26px rgba(84, 112, 70, 0.3);
+
+  /* easing */
+  --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* fonts */
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+
+  /* animations */
+  --animate-floaty: floaty 7s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+
+  /* --- shadcn semantic layer ---
+     Only button.tsx was ported to the brand tokens above; the other 47 ui/
+     components still reference shadcn's default names (bg-primary,
+     text-muted-foreground, bg-card...), which were never defined here, so they
+     rendered unstyled. These alias the shadcn names onto the brand palette so
+     the whole component set is themed from one place. */
+  --color-background: #f7f9f4;
+  --color-foreground: #16211a;
+  --color-card: #ffffff;
+  --color-card-foreground: #16211a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #16211a;
+  --color-primary: #547046;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e8efe1;
+  --color-secondary-foreground: #4c6840;
+  --color-muted: #edf1e8;
+  --color-muted-foreground: #66716c;
+  --color-accent: #edf1e8;
+  --color-accent-foreground: #16211a;
+  --color-destructive: #c3362a;
+  --color-destructive-foreground: #ffffff;
+  --color-input: #dfe6d8;
+  --color-ring: #547046;
+}
+
+/* badge.tsx reads this as a raw custom property, not a Tailwind token */
+:root {
+  --badge-outline: var(--color-border);
+}
+
+/* ===== motion =====
+   Everything here is subtle on purpose: short distances, soft easing, and a
+   single reveal-on-scroll primitive rather than per-section bespoke animation.
+   All of it is switched off under prefers-reduced-motion at the bottom. */
+
+/* reveal-on-scroll: elements start shifted + transparent, `.is-in` lands them.
+   The hook adds `.is-in` when the element enters the viewport. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s var(--ease-brand),
+    transform 0.7s var(--ease-brand);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* card hover lift — used on service/case cards */
+.lift {
+  transition:
+    transform 0.35s var(--ease-brand),
+    box-shadow 0.35s var(--ease-brand),
+    border-color 0.35s var(--ease-brand);
+}
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+
+/* slow drift for the hero's background glow */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.06);
+  }
+}
+.drift {
+  animation: drift 18s var(--ease-brand) infinite;
+}
+
+/* continuous logo/badge marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee var(--marquee-duration, 38s) linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* count-up and bar fills share this */
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .lift:hover {
+    transform: none;
+  }
+  .drift,
+  .marquee-track {
+    animation: none;
+  }
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+/* ===== Arabic / RTL ===== */
+/* Swap the sans stack to an Arabic-friendly face and flow the page right-to-left
+   when the document is in Arabic. `dir` is set on <html> by the i18n layer. */
+[dir="rtl"] {
+  --font-sans: "Cairo", "Plus Jakarta Sans", system-ui, sans-serif;
+}
+/* intl-tel-input v29 natively keeps the widget and dial codes LTR inside an
+   RTL page (it sets `dir` per element), so no extra RTL overrides needed. */
+
+/* ===== themed expert profile: recolor brand-blue icon fills/strokes =====
+   The brand SVG icon set hardcodes `#0080FF` rather than `currentColor`, so the
+   token remap can't reach them. Within a customized profile, retarget exactly
+   those brand-blue fills/strokes (case-insensitive) to the active theme primary
+   so icons follow the chosen colors. */
+.profile-themed [fill="#0080FF" i],
+.profile-themed [fill="#155DFC" i] {
+  fill: var(--p-primary, var(--color-brand));
+}
+.profile-themed [stroke="#0080FF" i],
+.profile-themed [stroke="#155DFC" i] {
+  stroke: var(--p-primary, var(--color-brand));
+}
+.profile-themed [fill="#1A3C5E" i] {
+  fill: var(--p-secondary, var(--color-navy));
+}
+.profile-themed [stroke="#1A3C5E" i] {
+  stroke: var(--p-secondary, var(--color-navy));
+}
+
+/* ===== intl-tel-input (WhatsApp number field) brand overrides ===== */
+.iti {
+  width: 100%;
+}
+.iti__selected-dial-code {
+  color: var(--color-ink);
+  font-size: 15px;
+}
+.iti__selected-country {
+  background-color: transparent;
+  border-radius: 14px 0 0 14px;
+}
+.iti.iti--inline-country-selector .iti__country-selector {
+  border: 1px solid var(--color-line2);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-sans);
+}
+.iti__country.iti__highlight {
+  background-color: var(--color-fill);
+}
+.iti__country-name,
+.iti__dial-code {
+  color: var(--color-ink);
+  font-size: 14px;
+}
+/* the flag + dial-code block is fixed-width, so on narrow screens it crowds the
+   number out; scale it down to match the smaller inputs beside it */
+@media (width < 560px) {
+  .iti {
+    --iti-spacer-horizontal: 7px;
+    --iti-arrow-padding: 5px;
+    --iti-flag-width: 17px;
+  }
+  .iti__selected-dial-code {
+    font-size: 13px;
+  }
+  .iti__country-name,
+  .iti__dial-code {
+    font-size: 13px;
+  }
+}
+
+/* ===== react-day-picker (Age date picker) brand theme ===== */
+.rdp-brand {
+  --rdp-accent-color: var(--color-brand);
+  --rdp-accent-background-color: var(--color-fill);
+  --rdp-today-color: var(--color-brand);
+  --rdp-day_button-border-radius: 10px;
+  --rdp-day_button-width: 38px;
+  --rdp-day_button-height: 38px;
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+.rdp-brand .rdp-chevron {
+  fill: var(--color-brand);
+}
+.rdp-brand .rdp-weekday {
+  color: var(--color-faint);
+  font-weight: 600;
+}
+.rdp-brand .rdp-day_button:hover:not(:disabled) {
+  background-color: var(--color-fill);
+}
+/* Filled selected day instead of the default outline */
+.rdp-brand .rdp-selected .rdp-day_button {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #fff;
+}
+.rdp-brand .rdp-dropdowns {
+  gap: 6px;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* ===== mobile =====
+   The previous owner of this file shrank the root font to 14px below 560px for
+   the app UI. That is wrong for a marketing site — it makes body copy smaller
+   exactly where it is hardest to read — so it is gone.
+
+   What is left: never let a decorative absolute element cause sideways scroll,
+   and keep content clear of the sticky mobile action bar. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* space for the fixed mobile CTA bar, plus the iOS home indicator */
+@media (width < 1024px) {
+  body {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* iOS zooms the page in when a focused input is under 16px */
+@media (width < 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
