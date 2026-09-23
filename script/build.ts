@@ -1,6 +1,7 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile, cp } from "fs/promises";
+import { existsSync } from "fs";
 import { execSync } from "child_process";
 import path from "path";
 
@@ -83,7 +84,10 @@ async function buildAll() {
   });
 
   // ship static server assets (inline email logo, …) alongside the bundle
-  await cp("server/assets", "dist/assets", { recursive: true });
+  // git does not track empty folders, so server/assets may be absent on a fresh clone (e.g. Vercel)
+  if (existsSync("server/assets")) {
+    await cp("server/assets", "dist/assets", { recursive: true });
+  }
 }
 
 buildAll().catch((err) => {
